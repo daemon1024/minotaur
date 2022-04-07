@@ -23,13 +23,17 @@ KF = -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/7/include \
 	 -I$(KRNDIR)/include/generated/uapi \
 	 -I$(LIBBPF)/src \
 	 -include $(KRNDIR)/include/linux/kconfig.h \
+	 -I/usr/lib/gcc/x86_64-alpine-linux-musl/10.3.1/include \
 	 -Isrc \
 	 -D__KERNEL__ -D__BPF_TRACING__ -Wno-unused-value -Wno-pointer-sign \
 	 -D__TARGET_ARCH_x86 -Wno-compare-distinct-pointer-types \
 	 -Wno-gnu-variable-sized-type-not-at-end \
 	 -Wno-address-of-packed-member -Wno-tautological-compare \
 	 -Wno-unknown-warning-option  \
+	 -fno-stack-protector \
 	 -O2 -emit-llvm
+
+# Fix alpine hardcoding
 
 SRCDIR=$(CURDIR)
 
@@ -59,7 +63,7 @@ endif
 
 $(BIN)/%.bpf.o: %.c
 	@echo "Compiling eBPF bytecode: $(GREEN)$@$(NC) ..."
-	$(Q)$(CL) $(KF) -c $< -o -| llc -march=bpf -mcpu=probe -filetype=obj -o $@
+	$(CL) $(KF) -c $< -o -| llc -march=bpf -mcpu=probe -filetype=obj -o $@
 #   $(CL) -target bpf $(KF) -c $< -o $@
 
 
