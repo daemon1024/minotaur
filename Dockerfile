@@ -10,19 +10,39 @@ ADD . /app
 WORKDIR /app
 RUN go build -o minotaur .
 
-### Make executable image
+### Make compiler image
 
-FROM alpine:3.15
+FROM alpine:3.15 as init
 
 RUN apk --no-cache update && \
-    apk --no-cache add bash git rsync && \
-    apk --no-cache add coreutils findutils && \
-    apk --no-cache add llvm clang go make gcc && \
-    apk --no-cache add musl-dev && \
-    apk --no-cache add linux-headers && \
-    apk --no-cache add elfutils-dev && \
-    apk --no-cache add libelf-static && \
-    apk --no-cache add zlib-static
+    apk --no-cache add bash git && \
+    apk --no-cache add llvm clang make gcc
+
+COPY --from=builder /app/Makefile /app/Makefile
+COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
+COPY --from=builder /app/minotaur.c /app/minotaur.c
+COPY --from=builder /app/libbpf /app/libbpf/
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+### Make executable image
+
+FROM alpine:3.15 as main
+
+RUN apk --no-cache update && \
+    apk --no-cache add bash git
+
+COPY --from=builder /app/minotaur /app/minotaur
+
+CMD ["/app/minotaur"]
+
+### Make executable image
+
+FROM alpine:3.15 as full
+
+RUN apk --no-cache update && \
+    apk --no-cache add bash git && \
+    apk --no-cache add llvm clang go make gcc
 
 COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
 COPY --from=builder /app/minotaur /app/minotaur
@@ -30,4 +50,4 @@ COPY --from=builder /app/Makefile /app/Makefile
 COPY --from=builder /app/minotaur.c /app/minotaur.c
 COPY --from=builder /app/libbpf /app/libbpf/
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypointfull.sh"]

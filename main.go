@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Load pre-compiled programs and maps into the kernel.
-	objs, err := ebpf.LoadCollection("minotaur.bpf.o")
+	objs, err := ebpf.LoadCollection("/tmp/minotaur/minotaur.bpf.o")
 	if err != nil {
 		log.Fatalf("loading objects: %v", err)
 	}

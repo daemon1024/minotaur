@@ -4,4 +4,4 @@ cd /app
 echo 'Hello World!'
 pwd
 make
-/app/minotaur
+cp minotaur.bpf.o /tmp/minotaur/
